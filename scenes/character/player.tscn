@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://dvj5bj45pe4yl"]
+[gd_scene load_steps=7 format=3 uid="uid://dvj5bj45pe4yl"]
 
 [ext_resource type="Script" uid="uid://bdhin3lq6pkm0" path="res://scripts/character/player.gd" id="1_vt0b6"]
 [ext_resource type="Script" uid="uid://dx2ijab5bdlfp" path="res://scripts/character/states/idle.gd" id="2_tum32"]
 [ext_resource type="Script" uid="uid://bwimjls1b4mjy" path="res://scripts/character/states/Run.gd" id="3_bnvp8"]
 [ext_resource type="Script" uid="uid://c2tpt3f7r0qrr" path="res://scripts/character/states/Jump.gd" id="4_1y732"]
+[ext_resource type="Script" uid="uid://ff07pgbgu58y" path="res://scripts/character/states/fall.gd" id="5_1y732"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_u8vuu"]
 
@@ -24,10 +25,17 @@ shape = SubResource("RectangleShape2D_u8vuu")
 unique_name_in_owner = true
 
 [node name="Idle" type="Node" parent="States"]
+unique_name_in_owner = true
 script = ExtResource("2_tum32")
 
 [node name="Run" type="Node" parent="States"]
+unique_name_in_owner = true
 script = ExtResource("3_bnvp8")
 
 [node name="Jump" type="Node" parent="States"]
+unique_name_in_owner = true
 script = ExtResource("4_1y732")
+
+[node name="Fall" type="Node" parent="States"]
+unique_name_in_owner = true
+script = ExtResource("5_1y732")

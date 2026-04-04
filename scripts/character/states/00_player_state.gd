@@ -6,7 +6,10 @@ var next_state : PlayerState
 #endregion
 
 #region // REFERENCES A TOUS LES STATES
-
+@onready var idle: PlayerStateIdle = %Idle
+@onready var run: PlayerStateRun = %Run
+@onready var jump: PlayerStateJump = %Jump
+@onready var fall: PlayerStateFall = %Fall
 #endregion
 
 func init() -> void:

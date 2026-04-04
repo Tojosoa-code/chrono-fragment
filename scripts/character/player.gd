@@ -1,8 +1,11 @@
 class_name Player
 extends CharacterBody2D
 
+#region // VARIABLE EXPORTATION
+@export var label : Label
+#endregion
 
- #region // ONREADY
+ #region // VARIABLE ONREADY
 @onready var STATES: Node = %States
 #endregion
 
@@ -45,12 +48,13 @@ func initialize_state() -> void :
 		if stt is PlayerState :
 			states.append(stt) 
 			stt.player = self
+	print(states)
 	if states.size() == 0 :
 		print("Aucune State!")
 		return
 	for state in states :
 		state.init()
-	change_state(current_state)
+	update_label()
 	current_state.enter()
 
 func change_state(new_state : PlayerState) -> void :
@@ -60,8 +64,17 @@ func change_state(new_state : PlayerState) -> void :
 		current_state.exit()
 	states.push_front(new_state)
 	current_state.enter()
+	update_label()
 	states.resize(3)
 
 func update_direction() -> void :
 	#var prev_direction : Vector2 = direction
-	direction = Input.get_vector("move_left", "move_right", "move_top", "move_back")
+	var axis_x := Input.get_axis("move_left", "move_right")
+	var axis_y := Input.get_axis("move_top", "move_down")
+	direction = Vector2(axis_x, axis_y)
+
+func update_label() -> void :
+	if label :
+		label.text = current_state.name
+	else :
+		print("Label non assigné pour la debug")

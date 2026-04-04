@@ -1,9 +1,10 @@
-class_name PlayerStatJump extends PlayerState
+class_name PlayerStateJump extends PlayerState
 
 func init() -> void:
 	pass
 
 func enter() -> void:
+	player.velocity.y = player.JUMP_VELOCITY
 	pass
 
 func exit() -> void :
@@ -16,4 +17,7 @@ func process(_delta: float) -> PlayerState:
 	return next_state
 
 func physics_process(_delta: float) -> PlayerState:
+	if player.velocity.y >= 0.0 :
+		return fall
+	player.velocity.x = player.direction.x * player.SPEED
 	return next_state
