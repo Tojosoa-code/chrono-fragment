@@ -9,7 +9,9 @@ func enter() -> void:
 func exit() -> void :
 	pass
 
-func handle_input(_event : InputEvent) -> PlayerState :
+func handle_input(event : InputEvent) -> PlayerState :
+	if event.is_action_pressed("surcharge") :
+		return surcharge
 	return next_state
 
 func process(_delta: float) -> PlayerState:

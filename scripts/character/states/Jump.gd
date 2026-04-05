@@ -14,6 +14,8 @@ func handle_input(event : InputEvent) -> PlayerState :
 	if event.is_action_released("jump") :
 		player.velocity.y *= 0.5
 		return fall
+	if event.is_action_pressed("surcharge") :
+		return surcharge
 	return next_state
 
 func process(_delta: float) -> PlayerState:
