@@ -3,16 +3,26 @@ extends CharacterBody2D
 
 #region // VARIABLE EXPORTATION
 @export var label : Label
-@export var DASH_POWER : float = 500.0
+@export_group("Dash Settings")
+@export var DASH_VELOCITY := 600.0 
+@export var DASH_DURATION := 0.25
+@export var coyote_time := 0.2
+@export var jump_buffer_time := 0.18
+@export var deceleration_rate := 10.0
 #endregion
 
  #region // VARIABLE ONREADY
 @onready var STATES: Node = %States
+@onready var sprite: Sprite2D = %Sprite
+@onready var collision_shape_stand: CollisionShape2D = %CollisionShapeStand
+@onready var collision_shape_crouch: CollisionShape2D = %CollisionShapeCrouch
+@onready var one_way_plateformer_detection: ShapeCast2D = %OneWayPlateformerDetection
+@onready var animation_player: AnimationPlayer = %AnimationPlayer
 #endregion
 
 #region // VARIABLE CONSTANT
-const SPEED := 250
-const JUMP_VELOCITY = -350.0
+const SPEED := 180
+const JUMP_VELOCITY = -450.0
 #endregion
 
 #region // VARIABLE STATE MACHINE
@@ -26,6 +36,8 @@ var previous_state : PlayerState :
 #region // VARIABLE STANDART
 var direction : Vector2 = Vector2.ZERO
 var gravity : float = 980
+var can_dash := true
+var gravity_multiplier := 1.0
 #endregion
 
 func _ready() -> void:
@@ -36,15 +48,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	update_direction()
-	if current_state is PlayerStateSurcharge:
-		queue_redraw()
-	elif previous_state and previous_state is PlayerStateSurcharge:
-		queue_redraw()
 	change_state(current_state.process(delta))
 
 func _physics_process(delta: float) -> void:
 	if not current_state is PlayerStateDash :
-		velocity.y += gravity * delta
+		velocity.y += gravity * delta * gravity_multiplier
+	if is_on_floor():
+		can_dash = true
 	change_state(current_state.physics_process(delta))
 	move_and_slide()
 
@@ -74,63 +84,16 @@ func change_state(new_state : PlayerState) -> void :
 	states.resize(3)
 
 func update_direction() -> void :
-	#var prev_direction : Vector2 = direction
 	var axis_x := Input.get_axis("move_left", "move_right")
 	var axis_y := Input.get_axis("move_top", "move_down")
 	direction = Vector2(axis_x, axis_y)
+	if direction.x > 0 :
+		sprite.flip_h = false
+	elif direction.x < 0 :
+		sprite.flip_h = true
 
 func update_label() -> void :
 	if label :
 		label.text = current_state.name
 	else :
 		print("Label non assigné pour la debug")
-
-
-#region // DRAW FUNCTION
-func _draw() -> void :
-	if current_state is PlayerStateSurcharge :
-		update_trajectory()
-
-func get_forward_direction() -> Vector2 :
-	return global_position.direction_to(get_global_mouse_position())
-
-func update_trajectory() -> void :
-	# On crée une copie locale pour la simulation
-	var sim_velocity : Vector2 = DASH_POWER * get_forward_direction() 
-	var line_start := global_position
-	var line_end : Vector2
-	var drag : float = ProjectSettings.get_setting("physics/2d/default_linear_damp")
-	var timestep := 0.02
-	var colors := [Color.YELLOW, Color.TRANSPARENT]
-	
-	for i : int in 70:
-		sim_velocity.y += gravity * timestep
-		sim_velocity = sim_velocity * clampf(1.0 - drag * timestep, 0, 1)
-		line_end = line_start + (sim_velocity * timestep)
-		
-		var ray := raycast_query2d(line_start, line_end)
-		if not ray.is_empty():
-			draw_line_global(line_start, ray.position, colors[i%2], 2)
-			break
-		
-		draw_line_global(line_start, line_end, colors[i%2], 2)
-		line_start = line_end
-
-func raycast_query2d(pointA, pointB) -> Dictionary :
-	var space_state := get_world_2d().direct_space_state
-	var query := PhysicsRayQueryParameters2D.create(pointA, pointB, 1)
-	
-	# CRITIQUE : L'exclusion doit être définie AVANT de lancer l'intersection
-	query.exclude = [self.get_rid()]
-	
-	var result := space_state.intersect_ray(query)
-	
-	if result:
-		return result
-	return {}
-
-func draw_line_global(pointA : Vector2, pointB : Vector2, color : Color, width : int = 1) -> void :
-	var local_offset := pointA - global_position
-	var pointB_local := pointB - global_position
-	draw_line(local_offset, pointB_local, color, width)
-#endregion

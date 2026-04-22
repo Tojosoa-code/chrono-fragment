@@ -1,12 +1,13 @@
-[gd_scene load_steps=21 format=3 uid="uid://dvj5bj45pe4yl"]
+[gd_scene load_steps=22 format=3 uid="uid://dvj5bj45pe4yl"]
 
 [ext_resource type="Script" uid="uid://bdhin3lq6pkm0" path="res://scripts/character/player.gd" id="1_vt0b6"]
-[ext_resource type="Texture2D" uid="uid://b4oteamspygcw" path="res://assets/character/sprites/slime-Sheet-Sheet.png" id="2_5y66v"]
+[ext_resource type="Texture2D" uid="uid://b4oteamspygcw" path="res://assets/sprites/slime-Sheet-Sheet.png" id="2_5y66v"]
 [ext_resource type="Script" uid="uid://dx2ijab5bdlfp" path="res://scripts/character/states/idle.gd" id="2_tum32"]
 [ext_resource type="Script" uid="uid://bwimjls1b4mjy" path="res://scripts/character/states/Run.gd" id="3_bnvp8"]
 [ext_resource type="Script" uid="uid://c2tpt3f7r0qrr" path="res://scripts/character/states/Jump.gd" id="4_1y732"]
 [ext_resource type="Script" uid="uid://ff07pgbgu58y" path="res://scripts/character/states/fall.gd" id="5_1y732"]
 [ext_resource type="Script" uid="uid://c80mf02ffknaf" path="res://scripts/character/states/crouch.gd" id="7_5y66v"]
+[ext_resource type="Script" uid="uid://dqmpp2d0tm6o7" path="res://scripts/character/states/Land.gd" id="7_uicah"]
 [ext_resource type="Script" uid="uid://bu7id0ih8artq" path="res://scripts/character/states/dash.gd" id="7_wmtbp"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_u8vuu"]
@@ -14,9 +15,6 @@ size = Vector2(28, 18)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wmtbp"]
 size = Vector2(28, 8)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_5y66v"]
-size = Vector2(20, 5)
 
 [sub_resource type="Animation" id="Animation_ba010"]
 resource_name = "Crouch"
@@ -37,8 +35,8 @@ tracks/0/keys = {
 
 [sub_resource type="Animation" id="Animation_e5n5u"]
 resource_name = "Dash"
-length = 0.23
-step = 0.02
+length = 0.55
+step = 0.05
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -46,10 +44,10 @@ tracks/0/path = NodePath("Sprite:frame")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.02, 0.04, 0.06, 0.08, 0.099999994, 0.12, 0.14, 0.16, 0.17999999, 0.19999999, 0.22),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"times": PackedFloat32Array(0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45000002, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 1,
-"values": [72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83]
+"values": [72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82]
 }
 
 [sub_resource type="Animation" id="Animation_vreni"]
@@ -102,6 +100,23 @@ tracks/0/keys = {
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
 "update": 1,
 "values": [36, 37, 38, 39, 40, 41, 42]
+}
+
+[sub_resource type="Animation" id="Animation_7r6u0"]
+resource_name = "Land"
+length = 0.1
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.07, 0.08, 0.089999996),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [60, 61, 62, 63, 64, 65, 66, 67, 68, 69]
 }
 
 [sub_resource type="Animation" id="Animation_uicah"]
@@ -161,6 +176,7 @@ _data = {
 &"Fall": SubResource("Animation_vreni"),
 &"Idle": SubResource("Animation_5y66v"),
 &"Jump": SubResource("Animation_iinkm"),
+&"Land": SubResource("Animation_7r6u0"),
 &"RESET": SubResource("Animation_uicah"),
 &"Run": SubResource("Animation_g2qfr"),
 &"Walk": SubResource("Animation_xub24")
@@ -193,6 +209,7 @@ disabled = true
 position = Vector2(0, -41)
 zoom = Vector2(0.8, 0.8)
 position_smoothing_enabled = true
+position_smoothing_speed = 6.0
 rotation_smoothing_enabled = true
 
 [node name="States" type="Node" parent="."]
@@ -214,6 +231,10 @@ script = ExtResource("4_1y732")
 unique_name_in_owner = true
 script = ExtResource("5_1y732")
 
+[node name="Land" type="Node" parent="States"]
+unique_name_in_owner = true
+script = ExtResource("7_uicah")
+
 [node name="Dash" type="Node" parent="States"]
 unique_name_in_owner = true
 script = ExtResource("7_wmtbp")
@@ -222,10 +243,9 @@ script = ExtResource("7_wmtbp")
 unique_name_in_owner = true
 script = ExtResource("7_5y66v")
 
-[node name="OneWayPlateformerDetection" type="ShapeCast2D" parent="."]
+[node name="OneWayPlateformerDetection" type="RayCast2D" parent="."]
 unique_name_in_owner = true
-shape = SubResource("RectangleShape2D_5y66v")
-target_position = Vector2(0, 0)
+target_position = Vector2(0, 4)
 collision_mask = 4
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

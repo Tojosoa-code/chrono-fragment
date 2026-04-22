@@ -4,6 +4,7 @@ func init() -> void:
 	pass
 
 func enter() -> void:
+	player.animation_player.play("Jump")
 	player.velocity.y = player.JUMP_VELOCITY
 	pass
 
@@ -14,8 +15,8 @@ func handle_input(event : InputEvent) -> PlayerState :
 	if event.is_action_released("jump") :
 		player.velocity.y *= 0.5
 		return fall
-	if event.is_action_pressed("surcharge") :
-		return surcharge
+	if event.is_action_pressed("dash") and player.can_dash:
+		return dash
 	return next_state
 
 func process(_delta: float) -> PlayerState:

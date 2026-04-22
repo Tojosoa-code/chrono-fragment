@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://ca7qib0r27sob"]
+[gd_scene load_steps=5 format=3 uid="uid://ca7qib0r27sob"]
 
 [ext_resource type="PackedScene" uid="uid://dvj5bj45pe4yl" path="res://scenes/character/player.tscn" id="1_qhobl"]
 [ext_resource type="FontFile" uid="uid://baj8o0x7usk7b" path="res://assets/fonts/PixelifySans-VariableFont_wght.ttf" id="2_tvpqx"]
+[ext_resource type="PackedScene" uid="uid://j6hrtvhvjua6" path="res://scenes/objects/one_way_platform.tscn" id="3_05t4c"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_a5wrw"]
 size = Vector2(200, 40)
@@ -10,6 +11,8 @@ size = Vector2(200, 40)
 
 [node name="floor" type="StaticBody2D" parent="."]
 position = Vector2(0, 200)
+scale = Vector2(49.252735, 0.7901122)
+collision_mask = 0
 
 [node name="ColorRect" type="ColorRect" parent="floor"]
 offset_left = -20.0
@@ -21,18 +24,38 @@ color = Color(0.1254902, 0.23529412, 0.3372549, 1)
 position = Vector2(79, -20)
 shape = SubResource("RectangleShape2D_a5wrw")
 
-[node name="floor2" type="StaticBody2D" parent="."]
-position = Vector2(255, 200)
+[node name="plateform" type="StaticBody2D" parent="."]
+position = Vector2(255, 59)
+scale = Vector2(1, 0.3199994)
+collision_mask = 0
 
-[node name="ColorRect" type="ColorRect" parent="floor2"]
+[node name="ColorRect" type="ColorRect" parent="plateform"]
 offset_left = -20.0
 offset_top = -40.0
 offset_right = 180.0
 color = Color(0.1254902, 0.23529412, 0.3372549, 1)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="floor2"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="plateform"]
 position = Vector2(79, -20)
 shape = SubResource("RectangleShape2D_a5wrw")
+
+[node name="plateform2" type="StaticBody2D" parent="."]
+position = Vector2(3091, 33)
+scale = Vector2(1, 0.3199994)
+collision_mask = 0
+
+[node name="ColorRect" type="ColorRect" parent="plateform2"]
+offset_left = -20.0
+offset_top = -40.0
+offset_right = 180.0
+color = Color(0.1254902, 0.23529412, 0.3372549, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="plateform2"]
+position = Vector2(79, -20)
+shape = SubResource("RectangleShape2D_a5wrw")
+
+[node name="OneWayPlatform" parent="." instance=ExtResource("3_05t4c")]
+position = Vector2(39.000008, 80)
 
 [node name="Player" parent="." node_paths=PackedStringArray("label") instance=ExtResource("1_qhobl")]
 position = Vector2(34, 28)
