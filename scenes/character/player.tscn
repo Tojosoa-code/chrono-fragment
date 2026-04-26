@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://dvj5bj45pe4yl"]
+[gd_scene load_steps=18 format=3 uid="uid://dvj5bj45pe4yl"]
 
 [ext_resource type="Script" uid="uid://bdhin3lq6pkm0" path="res://scripts/character/player.gd" id="1_vt0b6"]
 [ext_resource type="Texture2D" uid="uid://drictya7kmhgn" path="res://assets/character/sprites/hero.png" id="2_5y66v"]
@@ -7,7 +7,6 @@
 [ext_resource type="Script" uid="uid://bwimjls1b4mjy" path="res://scripts/character/states/Run.gd" id="3_bnvp8"]
 [ext_resource type="Script" uid="uid://c2tpt3f7r0qrr" path="res://scripts/character/states/Jump.gd" id="4_1y732"]
 [ext_resource type="Script" uid="uid://ff07pgbgu58y" path="res://scripts/character/states/fall.gd" id="5_1y732"]
-[ext_resource type="Script" uid="uid://c80mf02ffknaf" path="res://scripts/character/states/crouch.gd" id="7_5y66v"]
 [ext_resource type="Script" uid="uid://0bjfsrqwddhu" path="res://scripts/character/states/mining.gd" id="9_uicah"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_5y66v"]
@@ -139,7 +138,9 @@ shape = SubResource("CapsuleShape2D_uicah")
 disabled = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
+unique_name_in_owner = true
 position = Vector2(0, -41)
+ignore_rotation = false
 zoom = Vector2(0.25, 0.25)
 position_smoothing_enabled = true
 rotation_smoothing_enabled = true
@@ -163,10 +164,6 @@ script = ExtResource("4_1y732")
 [node name="Fall" type="Node" parent="States"]
 unique_name_in_owner = true
 script = ExtResource("5_1y732")
-
-[node name="Crouch" type="Node" parent="States"]
-unique_name_in_owner = true
-script = ExtResource("7_5y66v")
 
 [node name="Mining" type="Node" parent="States"]
 unique_name_in_owner = true

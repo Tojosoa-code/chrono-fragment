@@ -18,6 +18,7 @@ extends CharacterBody2D
 @onready var collision_shape_crouch: CollisionShape2D = %CollisionShapeCrouch
 @onready var one_way_plateformer_detection: ShapeCast2D = %OneWayPlateformerDetection
 @onready var animation_player: AnimationPlayer = %AnimationPlayer
+@onready var camera: CameraShake = %Camera2D
 #endregion
 
 #region // VARIABLE CONSTANT
@@ -40,6 +41,8 @@ var gravity : float = 980
 var current_tile := Vector2i(-9999, -9999)
 var gravity_multiplier := 1.0
 var mining_progress := 0.0
+var mining_timer := 0.0
+var mining_speed := 0.4
 #endregion
 
 func _ready() -> void:

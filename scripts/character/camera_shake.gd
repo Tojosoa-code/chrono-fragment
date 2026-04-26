@@ -1,23 +1,19 @@
 class_name CameraShake
 extends Camera2D
 
-var shake_strength := 0.0
-var shake_decay := 8.0   # Vitesse à laquelle ça s'arrête
-var rng := RandomNumberGenerator.new()
+var rotation_decay := 10.0
+var zoom_initial := Vector2(0.25, 0.25)
+var zoom_decay := 50.0
 
-func _ready():
-	rng.randomize()
+func _ready() -> void:
+	zoom_initial = zoom
 
 func _process(delta: float) -> void:
-	if shake_strength > 0.0:
-		offset = Vector2(
-			rng.randf_range(-shake_strength, shake_strength),
-			rng.randf_range(-shake_strength, shake_strength)
-		)
-		shake_strength = lerpf(shake_strength, 0.0, shake_decay * delta)
-	else:
-		offset = Vector2.ZERO
+	rotation_degrees = lerpf(rotation_degrees, 0.0, rotation_decay * delta)
+	zoom = zoom.lerp(zoom_initial, zoom_decay * delta)
 
-# Appelle ça depuis le state Mining
-func shake(strength: float) -> void:
-	shake_strength = strength
+func tilt(direction: Vector2) -> void:
+	rotation_degrees = sign(direction.x) * -2.5
+
+func zoom_punch() -> void:
+	zoom = zoom_initial * 1.1  # zoom out rapide

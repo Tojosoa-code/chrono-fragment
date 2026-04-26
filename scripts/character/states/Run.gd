@@ -20,8 +20,6 @@ func process(_delta: float) -> PlayerState:
 		return mining 
 	if player.direction.x == 0 :
 		return idle
-	elif player.direction.y > 0.5 :
-		return crouch
 	return next_state
 
 func physics_process(_delta: float) -> PlayerState:
