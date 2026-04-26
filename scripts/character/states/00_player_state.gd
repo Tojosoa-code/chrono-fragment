@@ -10,8 +10,8 @@ var next_state : PlayerState
 @onready var run: PlayerStateRun = %Run
 @onready var jump: PlayerStateJump = %Jump
 @onready var fall: PlayerStateFall = %Fall
-@onready var dash: PlayerStateDash = %Dash
 @onready var crouch: PlayerStateCrouch = %Crouch
+@onready var mining: PlayerStateMining = %Mining
 #endregion
 
 func init() -> void:

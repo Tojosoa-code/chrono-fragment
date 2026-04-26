@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3 uid="uid://ohp1k473d80"]
+
+[ext_resource type="TileSet" uid="uid://cypn83d1nc7iy" path="res://assets/tilesets/level01.tres" id="1_x6tb4"]
+[ext_resource type="Script" uid="uid://dvia0gqgefd8h" path="res://levels/00_LEVEL/ground.gd" id="2_662wd"]
+[ext_resource type="PackedScene" uid="uid://dvj5bj45pe4yl" path="res://scenes/character/player.tscn" id="2_led8h"]
+[ext_resource type="FontFile" uid="uid://baj8o0x7usk7b" path="res://assets/fonts/PixelifySans-VariableFont_wght.ttf" id="3_662wd"]
+
+[node name="01" type="Node2D"]
+metadata/_edit_horizontal_guides_ = [65.0]
+
+[node name="Ground" type="TileMapLayer" parent="."]
+position = Vector2(1, -16)
+tile_set = ExtResource("1_x6tb4")
+script = ExtResource("2_662wd")
+
+[node name="Player" parent="." node_paths=PackedStringArray("label") instance=ExtResource("2_led8h")]
+unique_name_in_owner = true
+position = Vector2(46, -163)
+label = NodePath("../HUD/Label")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="HUD"]
+offset_left = 9.0
+offset_top = 6.0
+offset_right = 56.0
+offset_bottom = 29.0
+theme_override_fonts/font = ExtResource("3_662wd")
+theme_override_font_sizes/font_size = 12
+text = "STATE"

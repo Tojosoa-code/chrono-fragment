@@ -15,6 +15,10 @@ run/main_scene="uid://ohp1k473d80"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+BlockData="*res://00_Global/BlockData.gd"
+
 [display]
 
 window/size/viewport_width=320
@@ -58,7 +62,7 @@ dash={
 
 [layer_names]
 
-2d_physics/layer_1="world"
+2d_physics/layer_1="ground"
 2d_physics/layer_2="player"
 2d_physics/layer_3="plateformer"
 

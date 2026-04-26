@@ -13,9 +13,6 @@ func exit() -> void :
 func handle_input(event : InputEvent) -> PlayerState :
 	if event.is_action_pressed("jump") and player.is_on_floor() :
 		return jump
-	
-	if event.is_action_pressed("dash") and player.can_dash:
-		return dash
 	return next_state
 
 func process(_delta: float) -> PlayerState:
