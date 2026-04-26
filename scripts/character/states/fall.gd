@@ -29,6 +29,8 @@ func handle_input(event : InputEvent) -> PlayerState :
 			return jump
 		else :
 			buffer_timer = player.jump_buffer_time
+	if event.is_action_pressed("mine") :
+		return mining 
 	return next_state
 
 func process(delta: float) -> PlayerState:

@@ -41,7 +41,7 @@ func process(delta: float) -> PlayerState:
 	if player.mining_progress >=  durete :
 		player.tile_map.break_block(tuile)
 		player.mining_progress = 0.0
-		player.current_tile = Vector2i(-9999, -9999)
+		player.current_tile = tuile
 	return next_state
 
 func physics_process(_delta: float) -> PlayerState:

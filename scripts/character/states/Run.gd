@@ -16,6 +16,8 @@ func handle_input(event : InputEvent) -> PlayerState :
 	return next_state
 
 func process(_delta: float) -> PlayerState:
+	if Input.is_action_pressed("mine") :
+		return mining 
 	if player.direction.x == 0 :
 		return idle
 	elif player.direction.y > 0.5 :

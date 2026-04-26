@@ -209,26 +209,18 @@ func get_block_data(tile_pos: Vector2i) -> Dictionary:
 	
 func break_block(tile_pos: Vector2i) -> Dictionary:
 	var data = get_block_data(tile_pos)
-	print("=== BLOC CASSÉ ===")
-	print("Position : ", tile_pos)
-	print("Type : ", data.get("nom", "inconnu"))
 	
 	erase_cell(tile_pos)
 	
 	var voisins_pierre = []
-	print("=== VOISINS ===")
-	for dx in range(-2, 3):
-		for dy in range(-2, 3):
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
 			if dx == 0 and dy == 0:
 				continue
 			var voisin = tile_pos + Vector2i(dx, dy)
 			var voisin_data = get_block_data(voisin)
-			var voisin_nom = voisin_data.get("nom", "vide")
-			print("Position : ", voisin, " | Type : ", voisin_nom)
 			if not voisin_data.is_empty() and voisin_data.get("nom") == "terre":
 				voisins_pierre.append(voisin)
-	
-	print("Voisins pierre à mettre à jour : ", voisins_pierre)
 	
 	if voisins_pierre.size() > 0:
 		# Effacer d'abord
