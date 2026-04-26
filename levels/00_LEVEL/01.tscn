@@ -8,7 +8,7 @@
 [node name="01" type="Node2D"]
 metadata/_edit_horizontal_guides_ = [65.0]
 
-[node name="Ground" type="TileMapLayer" parent="."]
+[node name="Ground" type="TileMapLayer" parent="." groups=["tile_map"]]
 position = Vector2(1, -16)
 tile_set = ExtResource("1_x6tb4")
 script = ExtResource("2_662wd")

@@ -8,6 +8,7 @@ extends CharacterBody2D
 @export var jump_buffer_time := 0.18
 @export var deceleration_rate := 10.0
 @export var max_fall_velocity := 600.0
+@export var porter := 5
 #endregion
 
  #region // VARIABLE ONREADY
@@ -33,12 +34,16 @@ var previous_state : PlayerState :
 #endregion
 
 #region // VARIABLE STANDART
+var tile_map : TileMapLayer
 var direction : Vector2 = Vector2.ZERO
 var gravity : float = 980
+var current_tile := Vector2i(-9999, -9999)
 var gravity_multiplier := 1.0
+var mining_progress := 0.0
 #endregion
 
 func _ready() -> void:
+	tile_map = get_tree().get_nodes_in_group("tile_map")[0]
 	initialize_state()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -46,6 +51,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	update_direction()
+	is_in_mining_range()
 	change_state(current_state.process(delta))
 
 func _physics_process(delta: float) -> void:
@@ -60,7 +66,6 @@ func initialize_state() -> void :
 		if stt is PlayerState :
 			states.append(stt) 
 			stt.player = self
-	print(states)
 	if states.size() == 0 :
 		print("Aucune State!")
 		return
@@ -82,11 +87,30 @@ func change_state(new_state : PlayerState) -> void :
 func update_direction() -> void :
 	var axis_x := Input.get_axis("move_left", "move_right")
 	var axis_y := Input.get_axis("move_top", "move_down")
+	var mouse_pos := get_global_mouse_position()
+	
 	direction = Vector2(axis_x, axis_y)
 	if direction.x > 0 :
 		sprite.flip_h = false
 	elif direction.x < 0 :
 		sprite.flip_h = true
+	else :
+		if mouse_pos.x > global_position.x :
+			sprite.flip_h = false 
+		else :
+			sprite.flip_h = true
+		
+
+func get_hovered_tile() -> Vector2i :
+	var pos_local = tile_map.to_local(get_global_mouse_position())
+	var tile_pos = tile_map.local_to_map(pos_local)
+	return tile_pos
+
+func is_in_mining_range() -> bool : 
+	var porter_max := porter * 32
+	var mouse_pos = get_global_mouse_position()
+	var distance = global_position.distance_squared_to(mouse_pos)
+	return distance < (porter_max ** 2)
 
 func update_label() -> void :
 	if label :

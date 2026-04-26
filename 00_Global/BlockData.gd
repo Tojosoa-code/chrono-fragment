@@ -3,13 +3,13 @@ extends Node
 
 # Clé = Vector2i de l'atlas tile  →  {hardness, nom, valeur}
 const BLOCS := {
-	Vector2i(0, 0): {  # Pierre
-		"nom": "pierre",
+	Vector2i(0, 0): {  # Terre
+		"nom": "terre",
 		"hardness": 1.5,
 		"valeur": 0,
 		"niveau_pioche_min": 0
 	},
-	Vector2i(0, 5): {  # Charbon
+	Vector2i(10, 1): {  # Charbon
 		"nom": "charbon",
 		"hardness": 2.0,
 		"valeur": 5,

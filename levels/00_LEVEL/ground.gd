@@ -179,27 +179,62 @@ func est_de_la_roche(pos_g: Vector2i) -> bool:
 func appliquer_dessin_chunk(data: Dictionary):
 	set_cells_terrain_connect(data["terre"], 0, 0)
 	# Adapte les Vector2i selon ton atlas
-	for pos in data["charbon"]: set_cell(pos, 0, Vector2i(0, 5))
+	for pos in data["charbon"]: set_cell(pos, 0, Vector2i(10, 1))
 	for pos in data["fer"]:     set_cell(pos, 0, Vector2i(2, 5))
 	for pos in data["or"]:      set_cell(pos, 0, Vector2i(1, 5))
 	for pos in data["diamant"]: set_cell(pos, 0, Vector2i(8, 5))
-
-# Ajoute ces méthodes dans ton script TileMapLayer existant
 
 func get_block_hardness(tile_pos: Vector2i) -> float:
 	var atlas_coords = get_cell_atlas_coords(tile_pos)
 	if atlas_coords == Vector2i(-1, -1):
 		return 0.0  # Case vide
 	var data = BlockData.get_data(atlas_coords)
+	if data.is_empty():
+		return 1.5  # C'est de la pierre
 	return data.get("hardness", 0.0)
 
 func get_block_data(tile_pos: Vector2i) -> Dictionary:
 	var atlas_coords = get_cell_atlas_coords(tile_pos)
 	if atlas_coords == Vector2i(-1, -1):
 		return {}
-	return BlockData.get_data(atlas_coords)
-
+	var data = BlockData.get_data(atlas_coords)
+	if data.is_empty():
+		return {  # Terre
+			"nom": "terre",
+			"hardness": 1.5,
+			"valeur": 0,
+			"niveau_pioche_min": 0
+		}
+	return data
+	
 func break_block(tile_pos: Vector2i) -> Dictionary:
 	var data = get_block_data(tile_pos)
+	print("=== BLOC CASSÉ ===")
+	print("Position : ", tile_pos)
+	print("Type : ", data.get("nom", "inconnu"))
+	
 	erase_cell(tile_pos)
-	return data  # Retourne les données pour que le player récupère la valeur/drop
+	
+	var voisins_pierre = []
+	print("=== VOISINS ===")
+	for dx in range(-2, 3):
+		for dy in range(-2, 3):
+			if dx == 0 and dy == 0:
+				continue
+			var voisin = tile_pos + Vector2i(dx, dy)
+			var voisin_data = get_block_data(voisin)
+			var voisin_nom = voisin_data.get("nom", "vide")
+			print("Position : ", voisin, " | Type : ", voisin_nom)
+			if not voisin_data.is_empty() and voisin_data.get("nom") == "terre":
+				voisins_pierre.append(voisin)
+	
+	print("Voisins pierre à mettre à jour : ", voisins_pierre)
+	
+	if voisins_pierre.size() > 0:
+		# Effacer d'abord
+		for v in voisins_pierre:
+			erase_cell(v)
+		# Puis redessiner
+		set_cells_terrain_connect(voisins_pierre, 0, 0)
+	
+	return data
