@@ -61,13 +61,14 @@ func _do_hit_effect() -> void:
 	var camera = player.get_node("Camera2D") as CameraShake
 	var dir = player.get_global_mouse_position() - player.global_position
 	camera.tilt(dir)
+	camera.zoom_punch(1.05)
 	Engine.time_scale = 0.05
 	await player.get_tree().create_timer(0.05 * Engine.time_scale).timeout
 	Engine.time_scale = 1.0
 
 func _do_break_effect() -> void:
 	var camera = player.get_node("Camera2D") as CameraShake
-	camera.zoom_punch()
+	camera.zoom_punch(1.1)
 	Engine.time_scale = 0.05
 	await player.get_tree().create_timer(0.08 * Engine.time_scale).timeout
 	Engine.time_scale = 1.0

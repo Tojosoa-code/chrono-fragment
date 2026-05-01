@@ -8,7 +8,7 @@ func init() -> void:
 	pass
 
 func enter() -> void:
-	player.animation_player.play("Jump")
+	#player.animation_player.play("Jump")
 	player.animation_player.pause()
 	player.gravity_multiplier = MULTIPLIER
 	if player.previous_state is PlayerStateJump :
@@ -36,7 +36,7 @@ func handle_input(event : InputEvent) -> PlayerState :
 func process(delta: float) -> PlayerState:
 	coyote_timer -= delta
 	buffer_timer -= delta
-	set_jump_frame()
+	#set_jump_frame()
 	return next_state
 
 func physics_process(_delta: float) -> PlayerState:

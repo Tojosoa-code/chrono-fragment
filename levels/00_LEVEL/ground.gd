@@ -1,21 +1,18 @@
 extends TileMapLayer
 
-# --- Paramètres du monde ---
-@export var taille_chunk = 32
+@export var taille_chunk = 16
 @export var limite_surface = 10
 @export var seuil_grotte = 0.05
 @onready var player = %Player
 
-# --- Gestion du Monde ---
 var noise = FastNoiseLite.new()
 var noise_richesse = FastNoiseLite.new()
 var chunks_generes = {}
 var file_attente_dessin = []
 
-# --- Thread ---
 var thread: Thread = null
 var mutex = Mutex.new()
-var chunks_en_attente_generation = [] # Liste des chunks à générer (protégée par mutex)
+var chunks_en_attente_generation = []
 var generation_en_cours = false
 
 func _ready():
@@ -29,98 +26,120 @@ func _ready():
 
 func _process(_delta: float) -> void:
 	var p_pos = player.global_position
-	var curr_chunk_x = int(floor(p_pos.x / (taille_chunk * 32)))  # 32 = taille d'une tile en pixels
+	var curr_chunk_x = int(floor(p_pos.x / (taille_chunk * 32)))
 	var curr_chunk_y = int(floor(p_pos.y / (taille_chunk * 32)))
 
-	# 1. Collecter les chunks manquants
-	for dx in range(-2, 3):
-		for dy in range(-2, 3):
+	for dx in range(-4, 5):
+		for dy in range(-4, 5): 
 			var cible = Vector2i(curr_chunk_x + dx, curr_chunk_y + dy)
 			if not chunks_generes.has(cible):
-				chunks_generes[cible] = true  # Réserver tout de suite pour éviter les doublons
+				chunks_generes[cible] = true
 				mutex.lock()
 				chunks_en_attente_generation.append(cible)
 				mutex.unlock()
 
-	# 2. Lancer le thread si libre
 	if not generation_en_cours and chunks_en_attente_generation.size() > 0:
 		mutex.lock()
 		var prochain = chunks_en_attente_generation.pop_front()
 		mutex.unlock()
-
 		generation_en_cours = true
 		thread = Thread.new()
 		thread.start(_thread_generer_chunk.bind(prochain))
 
-	# 3. Vérifier si le thread a fini
 	if generation_en_cours and thread != null and not thread.is_alive():
 		thread.wait_to_finish()
 		generation_en_cours = false
 		thread = null
 
-	# 4. Dessiner UN chunk par frame pour éviter les gros pics
-	if file_attente_dessin.size() > 0:
-		mutex.lock()
-		var donnees = file_attente_dessin.pop_front()
-		mutex.unlock()
-		appliquer_dessin_chunk(donnees)
+	# Dessine 3 morceaux par frame au lieu d'un chunk entier
+	for i in range(3):
+		if file_attente_dessin.size() > 0:
+			mutex.lock()
+			var morceau = file_attente_dessin.pop_front()
+			mutex.unlock()
+			_dessiner_morceau(morceau)
 
-# Appelée depuis le thread secondaire
 func _thread_generer_chunk(pos_chunk: Vector2i):
 	var donnees = generer_donnees_chunk(pos_chunk)
-	mutex.lock()
-	file_attente_dessin.append(donnees)
-	mutex.unlock()
+	# Découper la terre en morceaux de 100 tuiles
+	var terre = donnees["terre"]
+	var i = 0
+	while i < terre.size():
+		var morceau = {
+			"terre":   terre.slice(i, min(i + 100, terre.size())),
+			"charbon": [] if i > 0 else donnees["charbon"],
+			"fer":     [] if i > 0 else donnees["fer"],
+			"or":      [] if i > 0 else donnees["or"],
+			"diamant": [] if i > 0 else donnees["diamant"]
+		}
+		mutex.lock()
+		file_attente_dessin.append(morceau)
+		mutex.unlock()
+		i += 100
+	# Cas où terre est vide (chunk sans tuiles)
+	if terre.size() == 0:
+		mutex.lock()
+		file_attente_dessin.append(donnees)
+		mutex.unlock()
 
 func generer_donnees_chunk(pos_chunk: Vector2i) -> Dictionary:
 	var minerai_dict = {}
 	var terre_liste = []
 
-	# Richesse locale du chunk (entre -1 et 1)
-	var richesse = noise_richesse.get_noise_2d(pos_chunk.x, pos_chunk.y)
+	var x_base = pos_chunk.x * taille_chunk
+	var y_base = pos_chunk.y * taille_chunk
+
+	# Cache pré-calculé
+	var cache_roche = []
+	cache_roche.resize(taille_chunk * taille_chunk)
 
 	for x_local in range(taille_chunk):
+		var x_global = x_base + x_local
 		for y_local in range(taille_chunk):
-			var x_global = (pos_chunk.x * taille_chunk) + x_local
-			var y_global = (pos_chunk.y * taille_chunk) + y_local
-			var pos_g = Vector2i(x_global, y_global)
+			var y_global = y_base + y_local
+			if y_global <= limite_surface:
+				cache_roche[x_local * taille_chunk + y_local] = false
+			else:
+				var v = noise.get_noise_2d(x_global, y_global)
+				cache_roche[x_local * taille_chunk + y_local] = v > (seuil_grotte + (y_global * 0.00005))
 
-			if not est_de_la_roche(pos_g):
+	var richesse = noise_richesse.get_noise_2d(pos_chunk.x, pos_chunk.y)
+	var bonus = richesse * 0.3
+
+	for x_local in range(taille_chunk):
+		var x_global = x_base + x_local
+		for y_local in range(taille_chunk):
+			var y_global = y_base + y_local
+
+			if not cache_roche[x_local * taille_chunk + y_local]:
 				continue
+
+			var pos_g = Vector2i(x_global, y_global)
 			if minerai_dict.has(pos_g):
 				continue
 
 			var chance = randf()
 			var profondeur = max(0, y_global - limite_surface)
 
-			# --- Équilibrage par profondeur ---
-			# Charbon : couche supérieure, commun
-			var seuil_charbon = lissage(profondeur, 20, 100, 0.06, 0.0)
-			# Fer : couche moyenne
-			var seuil_fer    = lissage(profondeur, 50, 200, 0.04, 0.0)
-			# Or : couche profonde
-			var seuil_or     = lissage(profondeur, 150, 400, 0.025, 0.0)
-			# Diamant : très profond seulement
-			var seuil_diamant = lissage(profondeur, 300, 600, 0.01, 0.0)
-
-			# Bonus de richesse : zone riche = +30% sur les seuils
-			var bonus = richesse * 0.3
+			var seuil_charbon = lissage(profondeur, 20,  100, 0.06,  0.0)
+			var seuil_fer     = lissage(profondeur, 50,  200, 0.04,  0.0)
+			var seuil_or      = lissage(profondeur, 150, 400, 0.025, 0.0)
+			var seuil_diamant = lissage(profondeur, 300, 600, 0.01,  0.0)
 
 			if chance < (seuil_diamant + seuil_diamant * bonus):
-				creer_filon(pos_g, "diamant", minerai_dict, pos_chunk)
+				creer_filon(pos_g, "diamant", minerai_dict, cache_roche, x_base, y_base)
 			elif chance < (seuil_or + seuil_or * bonus):
-				creer_filon(pos_g, "or", minerai_dict, pos_chunk)
+				creer_filon(pos_g, "or", minerai_dict, cache_roche, x_base, y_base)
 			elif chance < (seuil_fer + seuil_fer * bonus):
-				creer_filon(pos_g, "fer", minerai_dict, pos_chunk)
+				creer_filon(pos_g, "fer", minerai_dict, cache_roche, x_base, y_base)
 			elif chance < (seuil_charbon + seuil_charbon * bonus):
-				creer_filon(pos_g, "charbon", minerai_dict, pos_chunk)
+				creer_filon(pos_g, "charbon", minerai_dict, cache_roche, x_base, y_base)
 			else:
 				terre_liste.append(pos_g)
 
-	# Trier les minerais par type
 	var final_charbon = []
-	var final_fer = []
-	var final_or = []
+	var final_fer     = []
+	var final_or      = []
 	var final_diamant = []
 
 	for pos in minerai_dict:
@@ -131,37 +150,38 @@ func generer_donnees_chunk(pos_chunk: Vector2i) -> Dictionary:
 			"diamant":  final_diamant.append(pos)
 
 	return {
-		"terre": terre_liste,
+		"terre":   terre_liste,
 		"charbon": final_charbon,
-		"fer": final_fer,
-		"or": final_or,
+		"fer":     final_fer,
+		"or":      final_or,
 		"diamant": final_diamant
 	}
 
-# Fonction de lissage : le seuil monte de 0 à valeur_max entre profondeur_min et profondeur_max
 func lissage(profondeur: float, prof_min: float, prof_max: float, valeur_max: float, valeur_min: float) -> float:
 	if profondeur < prof_min: return valeur_min
 	if profondeur > prof_max: return valeur_max
 	var t = (profondeur - prof_min) / (prof_max - prof_min)
 	return lerp(valeur_min, valeur_max, t)
 
-func creer_filon(pos_depart: Vector2i, type: String, minerai_dict: Dictionary, pos_chunk: Vector2i):
-	# Taille du filon selon le type
+func creer_filon(pos_depart: Vector2i, type: String, minerai_dict: Dictionary, cache_roche: Array, x_base: int, y_base: int):
 	var taille = match_taille_filon(type)
 	var pos_actuelle = pos_depart
 
-	var x_min = pos_chunk.x * taille_chunk
-	var x_max = x_min + taille_chunk - 1
-	var y_min = pos_chunk.y * taille_chunk
-	var y_max = y_min + taille_chunk - 1
+	var x_min = x_base
+	var x_max = x_base + taille_chunk - 1
+	var y_min = y_base
+	var y_max = y_base + taille_chunk - 1
 
 	var directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 	for i in range(taille):
-		if pos_actuelle.x >= x_min and pos_actuelle.x <= x_max and \
-		   pos_actuelle.y >= y_min and pos_actuelle.y <= y_max:
-			if est_de_la_roche(pos_actuelle) and not minerai_dict.has(pos_actuelle):
+		var px = pos_actuelle.x
+		var py = pos_actuelle.y
+		if px >= x_min and px <= x_max and py >= y_min and py <= y_max:
+			var lx = px - x_base
+			var ly = py - y_base
+			if cache_roche[lx * taille_chunk + ly] and not minerai_dict.has(pos_actuelle):
 				minerai_dict[pos_actuelle] = type
-		pos_actuelle += directions[randi() % directions.size()]
+		pos_actuelle += directions[randi() % 4]
 
 func match_taille_filon(type: String) -> int:
 	match type:
@@ -176,9 +196,9 @@ func est_de_la_roche(pos_g: Vector2i) -> bool:
 	var v = noise.get_noise_2d(pos_g.x, pos_g.y)
 	return v > (seuil_grotte + (pos_g.y * 0.00005))
 
-func appliquer_dessin_chunk(data: Dictionary):
-	set_cells_terrain_connect(data["terre"], 0, 0)
-	# Adapte les Vector2i selon ton atlas
+func _dessiner_morceau(data: Dictionary):
+	if data["terre"].size() > 0:
+		set_cells_terrain_connect(data["terre"], 0, 0)
 	for pos in data["charbon"]: set_cell(pos, 0, Vector2i(10, 1))
 	for pos in data["fer"]:     set_cell(pos, 0, Vector2i(2, 5))
 	for pos in data["or"]:      set_cell(pos, 0, Vector2i(1, 5))
@@ -187,10 +207,10 @@ func appliquer_dessin_chunk(data: Dictionary):
 func get_block_hardness(tile_pos: Vector2i) -> float:
 	var atlas_coords = get_cell_atlas_coords(tile_pos)
 	if atlas_coords == Vector2i(-1, -1):
-		return 0.0  # Case vide
+		return 0.0
 	var data = BlockData.get_data(atlas_coords)
 	if data.is_empty():
-		return 1.5  # C'est de la pierre
+		return 1.5
 	return data.get("hardness", 0.0)
 
 func get_block_data(tile_pos: Vector2i) -> Dictionary:
@@ -199,34 +219,31 @@ func get_block_data(tile_pos: Vector2i) -> Dictionary:
 		return {}
 	var data = BlockData.get_data(atlas_coords)
 	if data.is_empty():
-		return {  # Terre
+		return {
 			"nom": "terre",
 			"hardness": 1.5,
 			"valeur": 0,
 			"niveau_pioche_min": 0
 		}
 	return data
-	
+
 func break_block(tile_pos: Vector2i) -> Dictionary:
 	var data = get_block_data(tile_pos)
-	
 	erase_cell(tile_pos)
-	
+
 	var voisins_pierre = []
-	for dx in range(-1, 2):
-		for dy in range(-1, 2):
+	for dx in range(-2, 3):
+		for dy in range(-2, 3):
 			if dx == 0 and dy == 0:
 				continue
 			var voisin = tile_pos + Vector2i(dx, dy)
 			var voisin_data = get_block_data(voisin)
 			if not voisin_data.is_empty() and voisin_data.get("nom") == "terre":
 				voisins_pierre.append(voisin)
-	
+
 	if voisins_pierre.size() > 0:
-		# Effacer d'abord
 		for v in voisins_pierre:
 			erase_cell(v)
-		# Puis redessiner
 		set_cells_terrain_connect(voisins_pierre, 0, 0)
-	
+
 	return data

@@ -15,5 +15,5 @@ func _process(delta: float) -> void:
 func tilt(direction: Vector2) -> void:
 	rotation_degrees = sign(direction.x) * -2.5
 
-func zoom_punch() -> void:
-	zoom = zoom_initial * 1.1  # zoom out rapide
+func zoom_punch(z : float) -> void:
+	zoom = zoom_initial * z  # zoom out rapide
