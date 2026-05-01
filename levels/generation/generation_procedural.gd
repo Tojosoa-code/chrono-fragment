@@ -185,11 +185,11 @@ func creer_filon(pos_depart: Vector2i, type: String, minerai_dict: Dictionary, c
 
 func match_taille_filon(type: String) -> int:
 	match type:
-		"charbon":  return randi_range(6, 16)
-		"fer":      return randi_range(5, 12)
-		"or":       return randi_range(3, 8)
+		"charbon":  return randi_range(6, 12)
+		"fer":      return randi_range(5, 10)
+		"or":       return randi_range(3, 7)
 		"diamant":  return randi_range(2, 5)
-		_:          return randi_range(3, 8)
+		_:          return randi_range(3, 7)
 
 func est_de_la_roche(pos_g: Vector2i) -> bool:
 	if pos_g.y <= limite_surface: return false
@@ -199,10 +199,10 @@ func est_de_la_roche(pos_g: Vector2i) -> bool:
 func _dessiner_morceau(data: Dictionary):
 	if data["terre"].size() > 0:
 		set_cells_terrain_connect(data["terre"], 0, 0)
-	for pos in data["charbon"]: set_cell(pos, 0, Vector2i(10, 1))
-	for pos in data["fer"]:     set_cell(pos, 0, Vector2i(2, 5))
-	for pos in data["or"]:      set_cell(pos, 0, Vector2i(1, 5))
-	for pos in data["diamant"]: set_cell(pos, 0, Vector2i(8, 5))
+	for pos in data["charbon"]: set_cell(pos, 0, Vector2i(1, 8))
+	for pos in data["fer"]:     set_cell(pos, 0, Vector2i(1, 9))
+	for pos in data["or"]:      set_cell(pos, 0, Vector2i(1, 10))
+	for pos in data["diamant"]: set_cell(pos, 0, Vector2i(1, 11))
 
 func get_block_hardness(tile_pos: Vector2i) -> float:
 	var atlas_coords = get_cell_atlas_coords(tile_pos)
